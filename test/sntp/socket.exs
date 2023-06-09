@@ -5,7 +5,7 @@ defmodule SNTP.SocketTest do
   # doctest SNTP.Socket
 
   test "new/0" do
-    assert %Socket{} = Socket.new
+    assert %Socket{} = Socket.new()
   end
 
   test "open/1" do
@@ -14,7 +14,7 @@ defmodule SNTP.SocketTest do
   end
 
   test "close/1" do
-    socket = Socket.new
+    socket = Socket.new()
     assert %Socket{port: nil} = Socket.close(socket)
   end
 end

@@ -16,9 +16,14 @@ defmodule SNTP.Retriever do
 
   def init(config) do
     :erlang.process_flag(:trap_exit, true)
-    config = Enum.reduce(config, %{auto_start: true, retreive_every: 86400000}, fn {k, v}, acc -> Map.update(acc, k, v, &(if &1 == v, do: &1, else: v)) end)
+
+    config =
+      Enum.reduce(config, %{auto_start: true, retreive_every: 86_400_000}, fn {k, v}, acc ->
+        Map.update(acc, k, v, &if(&1 == v, do: &1, else: v))
+      end)
+
     if config[:auto_start], do: schedule_retreive(5000)
-    {:ok, %{socket: Socket.new(config), retreive_every: config[:retreive_every] || 86400000}}
+    {:ok, %{socket: Socket.new(config), retreive_every: config[:retreive_every] || 86_400_000}}
   end
 
   def handle_cast(:stop, %{socket: socket}) do
@@ -46,9 +51,15 @@ defmodule SNTP.Retriever do
         :ets.new(:sntp, [:named_table, :public, read_concurrency: true])
         :ets.insert(:sntp, lastest: timestamp)
     end
-    Logger.info "Timestamp retrieved at #{time}. Next retrieval in #{Application.get_env(:sntp, :retreive_every, 86400000)}"
+
+    Logger.info(
+      "Timestamp retrieved at #{time}. Next retrieval in #{Application.get_env(:sntp, :retreive_every, 86_400_000)}"
+    )
   end
+
   defp store_timestamp(%Timestamp{is_valid?: false, received_locally: time}) do
-    Logger.warn "Timestamp retrieved at #{time} is invalid. Next retrieval in #{Application.get_env(:sntp, :retreive_every, 86400000)}"
+    Logger.warn(
+      "Timestamp retrieved at #{time} is invalid. Next retrieval in #{Application.get_env(:sntp, :retreive_every, 86_400_000)}"
+    )
   end
 end

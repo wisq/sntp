@@ -17,18 +17,18 @@ defmodule SNTP do
   @spec now() :: pos_integer()
   def now() do
     case :ets.info(:sntp) do
-      :undefined -> System.system_time(1000)
+      :undefined ->
+        System.system_time(1000)
 
-      _         ->
+      _ ->
         [lastest: %{t: offset, is_valid?: is_valid?}] = :ets.lookup(:sntp, :lastest)
+
         case is_valid? do
           false -> System.system_time(1000)
-
-          true  -> System.system_time(1000) + Kernel.round(offset)
+          true -> System.system_time(1000) + Kernel.round(offset)
         end
     end
   end
-
 
   @doc """
   Returns the latest retrieved offset from the `SNTP.Retriever`
@@ -44,9 +44,10 @@ defmodule SNTP do
   @spec offset() :: {:ok, number()} | {:error, {Exception.t(), binary()}}
   def offset() do
     case :ets.info(:sntp) do
-      :undefined -> {:error, {RetrieverError, "SNTP Retriever is not started"}}
+      :undefined ->
+        {:error, {RetrieverError, "SNTP Retriever is not started"}}
 
-      []         ->
+      [] ->
         [lastest: %{t: offset}] = :ets.lookup(:sntp, :lastest)
         {:ok, offset}
     end
@@ -115,14 +116,15 @@ defmodule SNTP do
     |> Timestamp.parse()
     |> parse()
   end
+
   defp parse(%Socket{errors: errors}) do
     {:error, errors}
   end
+
   defp parse(timestamp) do
     case timestamp.is_valid? do
       false -> {:error, timestamp.errors}
-
-      true  -> {:ok, timestamp}
+      true -> {:ok, timestamp}
     end
   end
 end

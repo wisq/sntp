@@ -12,7 +12,9 @@ defmodule SNTPTest do
 
   @tag external: true
   test "resolves reference IP" do
-    {:ok, time} = SNTP.time(host: 'ntp.exnet.com', port: 123, timeout: :infinity, resolve_reference: true)
+    {:ok, time} =
+      SNTP.time(host: 'ntp.exnet.com', port: 123, timeout: :infinity, resolve_reference: true)
+
     refute is_nil(time.reference_host)
   end
 

@@ -10,8 +10,8 @@ defmodule SNTP.Mixfile do
       elixir: "~> 1.8",
       name: "SNTP",
       source_url: "https://github.com/schultzer/sntp",
-      build_embedded: Mix.env == :prod,
-      start_permanent: Mix.env == :prod,
+      build_embedded: Mix.env() == :prod,
+      start_permanent: Mix.env() == :prod,
       deps: deps(),
       description: description(),
       package: package(),
@@ -64,8 +64,8 @@ defmodule SNTP.Mixfile do
 
   def links do
     %{
-      "GitHub"    => "https://github.com/schultzer/sntp",
-      "Readme"    => "https://github.com/schultzer/sntp/blob/v#{@version}/README.md",
+      "GitHub" => "https://github.com/schultzer/sntp",
+      "Readme" => "https://github.com/schultzer/sntp/blob/v#{@version}/README.md",
       "Changelog" => "https://github.com/schultzer/sntp/blob/v#{@version}/CHANGELOG.md"
     }
   end
