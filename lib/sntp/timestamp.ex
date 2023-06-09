@@ -174,27 +174,32 @@ defmodule SNTP.Timestamp do
   defp set_reference_id("secondary", <<r1, r2, r3, r4>>), do: {r1, r2, r3, r4}
   defp set_reference_id(s, ref_id) when s in ["death", "primary"], do: ref_id
 
-  @doc !"""
-       There is serevels ways the operation migth be optimazed
-       instead of calling `:math.pow(2, 32)` we could do `bsl(1, 32)` witch is faster or just throw in `294967296` but will all machine produce `294967296`?
+  # The number of values that can fit in a 32-bit unsigned integer.
+  # NTP will roll over to 0 when it hits this number.
+  @unsigned_32 2 ** 32
+  # Start of Unix time in era 0.
+  # Equivalent to ~U[1970-01-01 00:00:00Z], or DateTime.from_unix!(0).
+  @era_0_unix_epoch 2_208_988_800
+  # Start of Unix time in era 1.
+  # Equivalent to ~U[2036-02-07 06:28:16Z], or DateTime.from_unix!(2_085_978_496).
+  @era_1_unix_epoch @era_0_unix_epoch - @unsigned_32
 
-       Thease a special const beacuse around 2036 there will be a integer overflow in the NTP Timestamp.
-       The RFC cover this.
-       2085978496 == 7-Feb-2036 @ 06:28:16 UTC
-       2208988800 == 1-Jan-1900 @ 01:00:00 UTC
-       """
+  # If the NTP seconds would resolve to a date between 1970 and 2036,
+  # then we assume it's in era 0.
+  #
+  # If it resolves to a date before 1970, we assume it's in era 1.
+  #
+  # This should be safe until we reach 2_208_988_800 in era 1, 
+  # which is equivalent to ~U[2106-02-07 06:28:16Z],
+  # or DateTime.from_unix!(@era_0_unix_epoch - @era_1_unix_epoch).
   defp to_msec(<<seconds::32, fraction::32>>) do
     epoch =
-      case band(seconds, 16) do
-        0 -> 2_085_978_496
-        _ -> 2_208_988_800
+      case seconds >= @era_0_unix_epoch do
+        true -> @era_0_unix_epoch
+        false -> @era_1_unix_epoch
       end
 
-    (reduce(<<seconds::32>>) - epoch + reduce(<<fraction::32>>) / :math.pow(2, 32)) * 1000
-  end
-
-  defp reduce(number) do
-    Enum.reduce(:erlang.binary_to_list(number), 0, fn n, number -> number * 256 + n end)
+    (seconds - epoch + fraction / @unsigned_32) * 1000
   end
 
   defp add_error(%__MODULE__{errors: errors} = timestamp, error, reason) do
