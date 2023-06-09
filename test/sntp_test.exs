@@ -12,10 +12,13 @@ defmodule SNTPTest do
 
   @tag external: true
   test "resolves reference IP" do
-    {:ok, time} =
-      SNTP.time(host: 'ntp.exnet.com', port: 123, timeout: :infinity, resolve_reference: true)
-
-    refute is_nil(time.reference_host)
+    # Not all hosts have a reference host, but trying four different ones should usually work.
+    assert Enum.any?(0..3, fn n ->
+             case SNTP.time(host: "#{n}.pool.ntp.org", timeout: 1000, resolve_reference: true) do
+               {:ok, time} -> !is_nil(time.reference_host)
+               {:error, _} -> false
+             end
+           end)
   end
 
   @tag external: true
